@@ -11,6 +11,10 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import okhttp3.ResponseBody
 import java.io.ByteArrayOutputStream
+import java.math.BigDecimal
+import java.text.NumberFormat
+
+typealias Amount = Double
 
 // Check if a string is numeric
 fun isNumeric(toCheck: String): Boolean {
@@ -18,10 +22,50 @@ fun isNumeric(toCheck: String): Boolean {
     return toCheck.matches(regex)
 }
 
+fun String.capitalizeFirstCharOnly(): String {
+    if (isEmpty()) return this
+    return this[0].toUpperCase() + substring(1).toLowerCase()
+}
+
+fun Any?.toSafeAmount(): Amount{
+    return try{
+        val cleanString = this?.toString()?.replace("[$₦,]".toRegex(), "")
+        cleanString?.toDouble() ?: 0.0
+    }catch (ex: Exception){
+        ex.printStackTrace()
+        0.0
+    }
+}
+
 //Replace char
 fun replaceChars(input: String, length:Int): String {
     val replacement = "#".repeat(length) // Create a string of "#" with a length of 15
     return replacement + input.substring(length)
+}
+
+fun formatCurrencyBigDecimal(amt: BigDecimal?): String{
+    val ft = NumberFormat.getCurrencyInstance()
+    val amount = amt ?: 0.0
+    return "₦${ft.format(amount).substring(1)}"
+}
+
+fun formatCurrencyNoSymbol(amt: Double?): String{
+    val ft = NumberFormat.getCurrencyInstance()
+    val amount = amt ?: 0.0
+    return if(amount < 0)
+        "-${ft.format(amount).substring(2)}"
+    else
+        ft.format(amount).substring(1)
+}
+
+fun formatCurrencyDollarSymbol(amt: Amount?): String{
+    val ft = NumberFormat.getCurrencyInstance()
+    val amount = amt ?: 0.0
+    //return ft.format(amount)
+    return if(amount < 0)
+        "$-${ft.format(amount).substring(2)}"
+    else
+        "$${ft.format(amount).substring(1)}"
 }
 
 
